@@ -7,6 +7,7 @@ import 'views/upload_page.dart';
 import 'views/history_page.dart';
 import 'views/profile_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,9 +42,25 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      home: FutureBuilder(
+        future: _getInitialPage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final String initialRoute = snapshot.data as String;
+          switch (initialRoute) {
+            case '/home':
+              return const HomePage();
+            case '/login':
+            default:
+              return const LoginPage();
+          }
+        },
+      ),
       routes: {
-        '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
@@ -52,6 +69,17 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
       },
     );
+  }
+
+  Future<String> _getInitialPage() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+      if (user.providerData.any((p) => p.providerId == 'google.com') || user.emailVerified) {
+        return '/home';
+      }
+    }
+    return '/login';
   }
 }
 
