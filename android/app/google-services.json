@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "712990403087",
+    "project_id": "com-example-linguapanel",
+    "storage_bucket": "com-example-linguapanel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712990403087:android:46d52cb15f6dcb8289917a",
+        "android_client_info": {
+          "package_name": "com.example.linguapanel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwu5HvgzTlBsJlbLuQXoer9JRepta70P0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
