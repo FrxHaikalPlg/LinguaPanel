@@ -4,6 +4,8 @@ import '../services/user_service.dart';
 import '../services/auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
+import '../viewmodels/profile_viewmodel.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -13,127 +15,22 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String? _username;
-  String? _email;
-  String? _photoUrl;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchProfile();
   }
 
-  Future<void> _fetchProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final data = await UserService().getUser(user.uid);
-      setState(() {
-        _username = data?['username'] ?? 'User';
-        _email = data?['email'] ?? user.email ?? '-';
-        _photoUrl = data?['photoUrl'];
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _username = 'User';
-        _email = '-';
-        _photoUrl = null;
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _editUsername() async {
-    final controller = TextEditingController(text: _username);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ubah Username'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Username'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-    if (result != null && result.isNotEmpty && result != _username) {
-      setState(() {
-        _isLoading = true;
-      });
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await UserService().createOrUpdateUser(
-          uid: user.uid,
-          username: result,
-          email: _email ?? user.email ?? '-',
-          photoUrl: _photoUrl,
-        );
-        await user.updateDisplayName(result);
-        await _fetchProfile();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Username berhasil diupdate!')),
-        );
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _editPhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _isLoading = true;
-      });
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final path = pickedFile.path;
-        await UserService().createOrUpdateUser(
-          uid: user.uid,
-          username: _username ?? 'User',
-          email: _email ?? user.email ?? '-',
-          photoUrl: path,
-        );
-        await user.updatePhotoURL(path);
-        await _fetchProfile();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto profil berhasil diupdate! (dummy)')),
-        );
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _logout(BuildContext context) async {
-    await AuthService().signOut();
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-  }
-
-  Widget _buildAvatar() {
-    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
-      if (_photoUrl!.startsWith('http')) {
+  Widget _buildAvatar(ProfileViewModel vm) {
+    if (vm.photoUrl != null && vm.photoUrl!.isNotEmpty) {
+      if (vm.photoUrl!.startsWith('http')) {
         return CircleAvatar(
           radius: 48,
-          backgroundImage: NetworkImage(_photoUrl!),
+          backgroundImage: NetworkImage(vm.photoUrl!),
         );
       } else {
         return CircleAvatar(
           radius: 48,
-          backgroundImage: FileImage(File(_photoUrl!)),
+          backgroundImage: FileImage(File(vm.photoUrl!)),
         );
       }
     }
@@ -145,6 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<ProfileViewModel>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil Pengguna'),
@@ -155,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         ),
       ),
-      body: _isLoading
+      body: vm.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(24.0),
@@ -163,19 +61,49 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 1. Avatar User
-                  _buildAvatar(),
+                  _buildAvatar(vm),
                   const SizedBox(height: 24),
                   // 2. Username
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _username ?? 'User',
+                        vm.username ?? 'User',
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit),
-                        onPressed: _editUsername,
+                        onPressed: () async {
+                          final controller = TextEditingController(text: vm.username);
+                          final result = await showDialog<String>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Ubah Username'),
+                              content: TextField(
+                                controller: controller,
+                                decoration: const InputDecoration(labelText: 'Username'),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, controller.text.trim()),
+                                  child: const Text('Simpan'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (result != null && result.isNotEmpty && result != vm.username) {
+                            await vm.updateUsername(result);
+                            if (context.mounted && vm.errorMessage == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Username berhasil diupdate!')),
+                              );
+                            }
+                          }
+                        },
                         tooltip: 'Ubah Username',
                       ),
                     ],
@@ -183,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 8),
                   // 3. Email
                   Text(
-                    _email ?? '-',
+                    vm.email ?? '-',
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
@@ -193,7 +121,18 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.camera_alt),
                       label: const Text('Ubah Foto Profil'),
-                      onPressed: _editPhoto,
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                        if (pickedFile != null) {
+                          await vm.updatePhoto(pickedFile.path);
+                          if (context.mounted && vm.errorMessage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Foto profil berhasil diupdate! (dummy)')),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -203,7 +142,31 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.logout),
                       label: const Text('Logout'),
-                      onPressed: () => _logout(context),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Logout'),
+                            content: const Text('Yakin ingin logout?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Batal'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Logout'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await AuthService().signOut();
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          }
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
