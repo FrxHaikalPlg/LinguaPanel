@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'views/splash_screen.dart';
 import 'views/login_page.dart';
 import 'views/register_page.dart';
+import 'views/home_page.dart';
+import 'views/upload_page.dart';
+import 'views/history_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +42,9 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/home': (context) => const HomePage(),
+        '/upload': (context) => const UploadPage(),
+        '/history': (context) => const HistoryPage(),
       },
     );
   }
