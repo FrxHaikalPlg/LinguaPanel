@@ -1,16 +1,62 @@
-# linguapanel
+# LinguaPanel
 
-A new Flutter project.
+## Project Overview
+LinguaPanel adalah aplikasi mobile berbasis Flutter yang membantu pengguna menerjemahkan komik digital secara otomatis. Pengguna dapat mengunggah gambar komik, lalu hasil terjemahan akan muncul di aplikasi. Aplikasi ini mendukung autentikasi, riwayat translasi, dan pengelolaan profil berbasis Firebase.
 
-## Getting Started
+## Chosen SDG & Justification
+**SDG 4: Quality Education**
+> LinguaPanel mendukung akses literasi lintas bahasa, membantu pembaca komik dari berbagai negara memahami konten tanpa batasan bahasa. Ini sejalan dengan tujuan SDG 4 untuk meningkatkan akses pendidikan dan literasi global.
 
-This project is a starting point for a Flutter application.
+## Tech Stack
+- **Flutter** (Dart)
+- **Firebase Auth** (Email/Password, Google Sign-In)
+- **Cloud Firestore** (CRUD data user & history)
+- **Provider** (State management, MVVM)
+- **image_picker** (Pilih gambar dari galeri)
 
-A few resources to get you started if this is your first Flutter project:
+## Setup & Installation
+1. **Clone repo:**
+   ```bash
+   git clone <repo-url>
+   cd linguapanel
+   ```
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
+3. **Tambahkan file `google-services.json` ke folder `android/app/`**
+4. **Jalankan aplikasi:**
+   ```bash
+   flutter run
+   ```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## How to Use
+- **Register/Login** dengan email atau Google.
+- **Upload gambar komik** di halaman Upload.
+- **Lihat riwayat translasi** di halaman History.
+- **Kelola profil** (ubah username, foto profil, logout) di halaman Profile.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Contribution Guidelines
+- Fork repo, buat branch baru, lakukan perubahan, dan ajukan pull request.
+- Ikuti arsitektur MVVM (Model-View-ViewModel) dengan Provider.
+- Pastikan kode clean dan teruji.
+
+## Firebase Usage
+- **Firebase Auth:**
+  - Email/password & Google Sign-In
+  - Email verification
+- **Cloud Firestore:**
+  - Data user (`users/<uid>`)
+  - Riwayat upload/translasi (`users/<uid>/history`)
+
+## APK Download
+- [APK split (arm64, armeabi-v7a, x86_64)](https://github.com/yourusername/linguapanel/releases) *(upload hasil build ke sini)*
+
+## More
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Provider package](https://pub.dev/packages/provider)
+
+---
+
+*Customize this README as needed for your project or presentation.*
