@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import '../services/user_service.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/history_viewmodel.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({Key? key}) : super(key: key);
@@ -20,6 +22,8 @@ class HistoryPage extends StatelessWidget {
         .doc(user.uid)
         .collection('history')
         .orderBy('timestamp', descending: true);
+
+    final vm = Provider.of<HistoryViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,31 +107,35 @@ class HistoryPage extends StatelessWidget {
                         isThreeLine: true,
                         trailing: IconButton(
                           icon: const Icon(Icons.remove_circle, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Hapus Riwayat'),
-                                content: const Text('Yakin ingin menghapus riwayat ini?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: const Text('Batal'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: const Text('Hapus'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm == true) {
-                              await UserService().deleteHistory(
-                                uid: user.uid,
-                                docId: docs[index].id,
-                              );
-                            }
-                          },
+                          onPressed: vm.isLoading
+                              ? null
+                              : () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Hapus Riwayat'),
+                                      content: const Text('Yakin ingin menghapus riwayat ini?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Batal'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('Hapus'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await vm.deleteHistory(docs[index].id);
+                                    if (context.mounted && vm.errorMessage == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Riwayat berhasil dihapus!')),
+                                      );
+                                    }
+                                  }
+                                },
                         ),
                       );
                     },

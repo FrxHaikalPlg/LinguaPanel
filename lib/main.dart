@@ -14,6 +14,7 @@ import 'viewmodels/register_viewmodel.dart';
 import 'viewmodels/home_viewmodel.dart';
 import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/upload_viewmodel.dart';
+import 'viewmodels/history_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
         ChangeNotifierProvider(create: (_) => UploadViewModel()),
+        ChangeNotifierProvider(create: (_) => HistoryViewModel()),
         // Tambah ViewModel lain di sini nanti
       ],
       child: const MyApp(),
