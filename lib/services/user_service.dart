@@ -38,4 +38,11 @@ class UserService {
       'timestamp': timestamp ?? DateTime.now(),
     });
   }
+
+  Future<void> deleteHistory({
+    required String uid,
+    required String docId,
+  }) async {
+    await users.doc(uid).collection('history').doc(docId).delete();
+  }
 } 

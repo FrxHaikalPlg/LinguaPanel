@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -60,8 +62,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _logout(BuildContext context) async {
-    await AuthService().signOut();
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Yakin ingin logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await AuthService().signOut();
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    }
   }
 
   @override
@@ -125,34 +146,53 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 24),
-              // 4. List Dummy History
+              // 4. List Riwayat Terakhir dari Firestore
               const Text(
                 'Riwayat Terakhir:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: ListView(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.image),
-                      title: const Text('Komik1.png'),
-                      subtitle: const Text('Status: Selesai'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.visibility),
-                        onPressed: () {},
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.image),
-                      title: const Text('Komik2.jpg'),
-                      subtitle: const Text('Status: Proses'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.visibility),
-                        onPressed: () {},
-                      ),
-                    ),
-                  ],
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseAuth.instance.currentUser == null
+                      ? null
+                      : FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .collection('history')
+                          .orderBy('timestamp', descending: true)
+                          .limit(2)
+                          .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text('Belum ada riwayat.'));
+                    }
+                    final docs = snapshot.data!.docs;
+                    return ListView.builder(
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+                        final imagePath = data['originalImageUrl'] as String?;
+                        final status = data['status'] as String? ?? '-';
+                        return ListTile(
+                          leading: imagePath != null && imagePath.isNotEmpty
+                              ? (imagePath.startsWith('http')
+                                  ? Image.network(imagePath, width: 40, height: 40, fit: BoxFit.cover)
+                                  : Image.file(File(imagePath), width: 40, height: 40, fit: BoxFit.cover))
+                              : const Icon(Icons.image),
+                          title: Text(imagePath?.split('/').last ?? 'Gambar'),
+                          subtitle: Text('Status: $status'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.visibility),
+                            onPressed: () {},
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],

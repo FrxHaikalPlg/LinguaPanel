@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import '../services/user_service.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text('User tidak ditemukan.')),
+      );
+    }
+    final historyRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('history')
+        .orderBy('timestamp', descending: true);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Riwayat Translasi'),
@@ -19,7 +35,7 @@ class HistoryPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 1. Search Bar
+            // 1. Search Bar (dummy, belum implementasi search)
             TextField(
               decoration: InputDecoration(
                 hintText: 'Cari riwayat...',
@@ -28,9 +44,10 @@ class HistoryPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              enabled: false,
             ),
             const SizedBox(height: 16),
-            // 2. Filter Dropdown
+            // 2. Filter Dropdown (dummy, belum implementasi filter)
             Row(
               children: [
                 const Text('Filter:'),
@@ -42,7 +59,7 @@ class HistoryPage extends StatelessWidget {
                     DropdownMenuItem(value: 'Selesai', child: Text('Selesai')),
                     DropdownMenuItem(value: 'Proses', child: Text('Proses')),
                   ],
-                  onChanged: (value) {},
+                  onChanged: null,
                 ),
               ],
             ),
@@ -56,29 +73,66 @@ class HistoryPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // 4. List History (dummy)
+            // 4. List History dari Firestore
             Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.image),
-                    title: const Text('Komik1.png'),
-                    subtitle: const Text('Status: Selesai'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.visibility),
-                      onPressed: () {},
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.image),
-                    title: const Text('Komik2.jpg'),
-                    subtitle: const Text('Status: Proses'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.visibility),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: historyRef.snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('Belum ada riwayat translasi.'));
+                  }
+                  final docs = snapshot.data!.docs;
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data() as Map<String, dynamic>;
+                      final imagePath = data['originalImageUrl'] as String?;
+                      final status = data['status'] as String? ?? '-';
+                      final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+                      return ListTile(
+                        leading: imagePath != null && imagePath.isNotEmpty
+                            ? (imagePath.startsWith('http')
+                                ? Image.network(imagePath, width: 40, height: 40, fit: BoxFit.cover)
+                                : Image.file(File(imagePath), width: 40, height: 40, fit: BoxFit.cover))
+                            : const Icon(Icons.image),
+                        title: Text(imagePath?.split('/').last ?? 'Gambar'),
+                        subtitle: Text('Status: $status\n${timestamp != null ? timestamp.toString() : ''}'),
+                        isThreeLine: true,
+                        trailing: IconButton(
+                          icon: const Icon(Icons.remove_circle, color: Colors.red),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hapus Riwayat'),
+                                content: const Text('Yakin ingin menghapus riwayat ini?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Hapus'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              await UserService().deleteHistory(
+                                uid: user.uid,
+                                docId: docs[index].id,
+                              );
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
             // 5. Tombol Kembali
