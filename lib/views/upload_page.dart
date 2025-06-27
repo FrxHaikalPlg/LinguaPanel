@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/upload_viewmodel.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({Key? key}) : super(key: key);
@@ -55,6 +57,7 @@ class _UploadPageState extends State<UploadPage> {
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<UploadViewModel>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Upload Gambar Komik'),
@@ -78,10 +81,10 @@ class _UploadPageState extends State<UploadPage> {
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: _selectedImage != null
+              child: vm.selectedImage != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                      child: Image.file(vm.selectedImage!, fit: BoxFit.cover),
                     )
                   : const Center(child: Text('Preview Gambar')),
             ),
@@ -92,7 +95,7 @@ class _UploadPageState extends State<UploadPage> {
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.image_search),
                 label: const Text('Pilih Gambar'),
-                onPressed: _isLoading ? null : _pickImage,
+                onPressed: vm.isLoading ? null : vm.pickImage,
               ),
             ),
             const SizedBox(height: 16),
@@ -102,13 +105,22 @@ class _UploadPageState extends State<UploadPage> {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.cloud_upload),
                 label: const Text('Upload'),
-                onPressed: _selectedImage == null || _isLoading ? null : _uploadDummy,
+                onPressed: vm.selectedImage == null || vm.isLoading
+                    ? null
+                    : () async {
+                        final success = await vm.uploadDummy();
+                        if (success && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Upload dummy berhasil! Masuk ke history.')),
+                          );
+                        }
+                      },
               ),
             ),
             const SizedBox(height: 24),
             // 5. Info Status
             Text(
-              _selectedImage == null
+              vm.selectedImage == null
                   ? 'Status: Belum ada gambar diupload'
                   : 'Status: Gambar siap diupload',
               style: const TextStyle(color: Colors.grey),
