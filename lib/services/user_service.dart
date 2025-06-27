@@ -23,4 +23,19 @@ class UserService {
     }
     return null;
   }
+
+  Future<void> addHistory({
+    required String uid,
+    required String originalImageUrl,
+    String? translatedImageUrl,
+    String status = 'Selesai',
+    DateTime? timestamp,
+  }) async {
+    await users.doc(uid).collection('history').add({
+      'originalImageUrl': originalImageUrl,
+      'translatedImageUrl': translatedImageUrl,
+      'status': status,
+      'timestamp': timestamp ?? DateTime.now(),
+    });
+  }
 } 

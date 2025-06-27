@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          final String initialRoute = snapshot.data as String;
+          final String initialRoute = snapshot.data as String? ?? '/login';
           switch (initialRoute) {
             case '/home':
               return const HomePage();

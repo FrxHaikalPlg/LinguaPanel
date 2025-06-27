@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -88,9 +90,57 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _editPhoto() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _isLoading = true;
+      });
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final path = pickedFile.path;
+        await UserService().createOrUpdateUser(
+          uid: user.uid,
+          username: _username ?? 'User',
+          email: _email ?? user.email ?? '-',
+          photoUrl: path,
+        );
+        await user.updatePhotoURL(path);
+        await _fetchProfile();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profil berhasil diupdate! (dummy)')),
+        );
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _logout(BuildContext context) async {
     await AuthService().signOut();
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
+  Widget _buildAvatar() {
+    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      if (_photoUrl!.startsWith('http')) {
+        return CircleAvatar(
+          radius: 48,
+          backgroundImage: NetworkImage(_photoUrl!),
+        );
+      } else {
+        return CircleAvatar(
+          radius: 48,
+          backgroundImage: FileImage(File(_photoUrl!)),
+        );
+      }
+    }
+    return const CircleAvatar(
+      radius: 48,
+      backgroundImage: AssetImage('assets/avatar_placeholder.png'),
+    );
   }
 
   @override
@@ -113,12 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 1. Avatar User
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundImage: _photoUrl != null && _photoUrl!.isNotEmpty
-                        ? NetworkImage(_photoUrl!)
-                        : const AssetImage('assets/avatar_placeholder.png') as ImageProvider,
-                  ),
+                  _buildAvatar(),
                   const SizedBox(height: 24),
                   // 2. Username
                   Row(
@@ -142,17 +187,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
-                  // 4. Tombol Ubah Foto Profil (dummy)
+                  // 4. Tombol Ubah Foto Profil
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.camera_alt),
                       label: const Text('Ubah Foto Profil'),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fitur ubah foto profil coming soon!')),
-                        );
-                      },
+                      onPressed: _editPhoto,
                     ),
                   ),
                   const SizedBox(height: 12),
