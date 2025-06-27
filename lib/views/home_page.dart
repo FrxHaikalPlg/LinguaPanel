@@ -1,9 +1,41 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/user_service.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _username;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsername();
+  }
+
+  Future<void> _fetchUsername() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final data = await UserService().getUser(user.uid);
+      setState(() {
+        _username = data?['username'] ?? 'User';
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _username = 'User';
+        _isLoading = false;
+      });
+    }
+  }
 
   void _confirmExit(BuildContext context) {
     showDialog(
@@ -45,8 +77,9 @@ class HomePage extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.pushNamed(context, '/profile');
+              onPressed: () async {
+                await Navigator.pushNamed(context, '/profile');
+                _fetchUsername();
               },
             ),
             IconButton(
@@ -61,10 +94,12 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Greeting
-              const Text(
-                'Halo, User!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : Text(
+                      'Halo, ${_username ?? 'User'}!',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
               const SizedBox(height: 24),
               // 2. Tombol Upload Image
               SizedBox(

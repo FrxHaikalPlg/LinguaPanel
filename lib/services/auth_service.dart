@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserService _userService = UserService();
 
   // Register
   Future<String?> register({
@@ -19,6 +21,7 @@ class AuthService {
         password: password,
       );
       await userCredential.user?.updateDisplayName(username);
+      // Tidak langsung buat dokumen user di Firestore, tunggu sampai user login dan verifikasi email
       return null;
     } on FirebaseAuthException catch (e) {
       return _firebaseErrorToMessage(e);
@@ -35,7 +38,16 @@ class AuthService {
     if (!_isValidEmail(email)) return 'Format email tidak valid';
     if (password.length < 6) return 'Password minimal 6 karakter';
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final user = userCredential.user;
+      if (user != null && user.emailVerified) {
+        await _userService.createOrUpdateUser(
+          uid: user.uid,
+          username: user.displayName ?? '',
+          email: user.email ?? '',
+          photoUrl: user.photoURL,
+        );
+      }
       return null;
     } on FirebaseAuthException catch (e) {
       return _firebaseErrorToMessage(e);
@@ -96,7 +108,16 @@ class AuthService {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user != null) {
+        await _userService.createOrUpdateUser(
+          uid: user.uid,
+          username: user.displayName ?? '',
+          email: user.email ?? '',
+          photoUrl: user.photoURL,
+        );
+      }
       return null;
     } on FirebaseAuthException catch (e) {
       return _firebaseErrorToMessage(e);
