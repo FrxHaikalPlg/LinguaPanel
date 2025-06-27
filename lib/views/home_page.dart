@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
+import '../viewmodels/home_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -14,29 +16,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? _username;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchUsername();
-  }
-
-  Future<void> _fetchUsername() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final data = await UserService().getUser(user.uid);
-      setState(() {
-        _username = data?['username'] ?? 'User';
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _username = 'User';
-        _isLoading = false;
-      });
-    }
   }
 
   void _confirmExit(BuildContext context) {
@@ -87,6 +69,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<HomeViewModel>(context);
     return WillPopScope(
       onWillPop: () async {
         _confirmExit(context);
@@ -100,7 +83,7 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(Icons.person),
               onPressed: () async {
                 await Navigator.pushNamed(context, '/profile');
-                _fetchUsername();
+                vm.fetchUsername();
               },
             ),
             IconButton(
@@ -115,10 +98,10 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Greeting
-              _isLoading
+              vm.isLoading
                   ? const CircularProgressIndicator()
                   : Text(
-                      'Halo, ${_username ?? 'User'}!',
+                      'Halo, ${vm.username ?? 'User'}!',
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
               const SizedBox(height: 24),
