@@ -17,7 +17,7 @@ LinguaPanel adalah aplikasi mobile berbasis Flutter yang membantu pengguna mener
 ## Setup & Installation
 1. **Clone repo:**
    ```bash
-   git clone <repo-url>
+   git clone github.com/FrxHaikalPlg/LinguaPanel/
    cd linguapanel
    ```
 2. **Install dependencies:**
@@ -50,7 +50,7 @@ LinguaPanel adalah aplikasi mobile berbasis Flutter yang membantu pengguna mener
   - Riwayat upload/translasi (`users/<uid>/history`)
 
 ## APK Download
-- [APK split (arm64, armeabi-v7a, x86_64)](https://github.com/yourusername/linguapanel/releases) *(upload hasil build ke sini)*
+- [APK split (arm64, armeabi-v7a, x86_64)](https://github.com/yourusername/linguapanel/releases)
 
 ## More
 - [Flutter Documentation](https://docs.flutter.dev/)
