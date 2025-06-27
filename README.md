@@ -50,7 +50,7 @@ LinguaPanel adalah aplikasi mobile berbasis Flutter yang membantu pengguna mener
   - Riwayat upload/translasi (`users/<uid>/history`)
 
 ## APK Download
-- [APK split (arm64, armeabi-v7a, x86_64)](https://github.com/yourusername/linguapanel/releases)
+- [APK split (arm64, armeabi-v7a, x86_64)](https://github.com/yourusername/LinguaPanel/releases)
 
 ## More
 - [Flutter Documentation](https://docs.flutter.dev/)
