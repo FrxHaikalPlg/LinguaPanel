@@ -62,24 +62,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: FutureBuilder(
-        future: _getInitialPage(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          final String initialRoute = snapshot.data as String? ?? '/login';
-          switch (initialRoute) {
-            case '/home':
-              return const HomePage();
-            case '/login':
-            default:
-              return const LoginPage();
-          }
-        },
-      ),
+      home: const SplashScreen(),
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),

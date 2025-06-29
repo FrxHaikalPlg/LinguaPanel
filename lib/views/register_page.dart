@@ -30,7 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 1. Logo
-              Image.asset('assets/logo.png', width: 80, height: 80),
+              Image.asset('assets/logo.png', width: 160, height: 160),
               const SizedBox(height: 32),
               // 2. Username Field
               TextField(
