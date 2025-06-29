@@ -19,6 +19,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      final vm = Provider.of<HomeViewModel>(context, listen: false);
+      vm.fetchUsername();
+    });
   }
 
   void _confirmExit(BuildContext context) {

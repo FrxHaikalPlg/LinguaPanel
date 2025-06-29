@@ -32,6 +32,14 @@ class LoginViewModel extends ChangeNotifier {
     return error == null;
   }
 
+  void reset() {
+    emailController.clear();
+    passwordController.clear();
+    errorMessage = null;
+    isLoading = false;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     emailController.dispose();

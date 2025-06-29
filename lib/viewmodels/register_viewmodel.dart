@@ -45,6 +45,16 @@ class RegisterViewModel extends ChangeNotifier {
     return error == null;
   }
 
+  void reset() {
+    usernameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    errorMessage = null;
+    isLoading = false;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     usernameController.dispose();

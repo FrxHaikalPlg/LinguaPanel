@@ -2,8 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Reset input setiap kali halaman login dibuka
+    Future.microtask(() {
+      final vm = Provider.of<LoginViewModel>(context, listen: false);
+      vm.reset();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

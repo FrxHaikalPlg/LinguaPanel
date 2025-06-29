@@ -44,4 +44,11 @@ class UploadViewModel extends ChangeNotifier {
     notifyListeners();
     return false;
   }
+
+  void reset() {
+    selectedImage = null;
+    errorMessage = null;
+    isLoading = false;
+    notifyListeners();
+  }
 } 

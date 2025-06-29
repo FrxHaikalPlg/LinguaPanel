@@ -18,6 +18,10 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      final vm = Provider.of<ProfileViewModel>(context, listen: false);
+      vm.fetchProfile();
+    });
   }
 
   Widget _buildAvatar(ProfileViewModel vm) {
@@ -161,6 +165,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         );
                         if (confirm == true) {
+                          final vm = Provider.of<ProfileViewModel>(context, listen: false);
+                          vm.reset();
                           await AuthService().signOut();
                           if (context.mounted) {
                             Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);

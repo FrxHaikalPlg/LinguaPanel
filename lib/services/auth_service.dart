@@ -40,7 +40,11 @@ class AuthService {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
       final user = userCredential.user;
-      if (user != null && user.emailVerified) {
+      if (user != null) {
+        if (!user.emailVerified && !user.providerData.any((p) => p.providerId == 'google.com')) {
+          await _auth.signOut(); // sign out so user is not considered logged in
+          return 'Email belum diverifikasi. Silakan cek email Anda.';
+        }
         await _userService.createOrUpdateUser(
           uid: user.uid,
           username: user.displayName ?? '',

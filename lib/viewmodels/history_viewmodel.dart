@@ -21,4 +21,10 @@ class HistoryViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  void reset() {
+    errorMessage = null;
+    isLoading = false;
+    notifyListeners();
+  }
 } 

@@ -76,4 +76,13 @@ class ProfileViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  void reset() {
+    username = null;
+    email = null;
+    photoUrl = null;
+    errorMessage = null;
+    isLoading = true;
+    notifyListeners();
+  }
 } 

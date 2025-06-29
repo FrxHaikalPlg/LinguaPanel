@@ -17,6 +17,15 @@ class _UploadPageState extends State<UploadPage> {
   File? _selectedImage;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final vm = Provider.of<UploadViewModel>(context, listen: false);
+      vm.reset();
+    });
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);

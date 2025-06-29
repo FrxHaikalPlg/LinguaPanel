@@ -23,4 +23,10 @@ class HomeViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  void reset() {
+    username = null;
+    isLoading = true;
+    notifyListeners();
+  }
 } 

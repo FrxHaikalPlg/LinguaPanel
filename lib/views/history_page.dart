@@ -6,8 +6,22 @@ import '../services/user_service.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/history_viewmodel.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({Key? key}) : super(key: key);
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final vm = Provider.of<HistoryViewModel>(context, listen: false);
+      vm.reset();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
